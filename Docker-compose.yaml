@@ -1,0 +1,65 @@
+services:
+
+  # ---------------------------------------------------------------
+  # Kafka en mode KRaft (sans Zookeeper) : un seul nœud, suffisant
+  # pour le projet. Sert de bus de messages entre l'ingestion et Spark.
+  # ---------------------------------------------------------------
+  kafka:
+    image: apache/kafka:3.8.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # --- Identité du nœud (combiné broker + controller) ---
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # --- Listeners ---
+      # INTERNAL : communication entre conteneurs (nom 'kafka')
+      # EXTERNAL : ce que voient les clients sur l'hôte (localhost:9092)
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      # --- Réglages mono-nœud (réplication = 1) ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: bourse          # base créée automatiquement au 1er démarrage
+      MYSQL_USER: etl
+      MYSQL_PASSWORD: etlpass
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Tout script .sql déposé ici est exécuté au premier démarrage :
+      - ./db/mysql:/docker-entrypoint-initdb.d
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpass
+      MONGO_INITDB_DATABASE: bourse
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  kafka_data:
+  mysql_data:
+  mongo_data:

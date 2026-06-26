@@ -1,0 +1,13 @@
+yfinance
+yahooquery
+feedparser
+kafka-python
+pyspark==3.5.1
+mysql-connector-python
+pymongo
+transformers
+torch
+huggingface_hub
+streamlit
+pandas
+python-dotenv
