@@ -5,6 +5,8 @@ import feedparser
 import yfinance as yf
 from kafka import KafkaProducer
 
+from symbols import ALL_SYMBOLS
+
 # ---------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------
@@ -12,9 +14,19 @@ KAFKA_BOOTSTRAP = "localhost:9092"
 
 TOPIC_COURS = "topic_cours_bourse"
 TOPIC_NEWS = "topic_actualites_finance"
+TOPIC_EVENTS = "topic_evenements_mondiaux"
 
-SYMBOL = "AAPL"
-RSS_URL = "https://services.lesechos.fr/rss/les-echos-finance-marches.xml"
+# Chaque flux RSS est routé vers un topic selon sa nature :
+#   marchés / finance          -> topic_actualites_finance
+#   économie / monde / politique -> topic_evenements_mondiaux
+FEEDS = [
+    ("https://services.lesechos.fr/rss/les-echos-finance-marches.xml", TOPIC_NEWS),
+    ("https://feeds.a.dj.com/rss/RSSMarketsMain.xml",                  TOPIC_NEWS),
+    ("https://www.cnbc.com/id/100003114/device/rss/rss.html",         TOPIC_NEWS),
+    ("https://www.lemonde.fr/economie/rss_full.xml",                  TOPIC_EVENTS),
+    ("https://news.google.com/rss/search?q=%C3%A9conomie+politique+r%C3%A9glementation&hl=fr&gl=FR&ceid=FR:fr",
+     TOPIC_EVENTS),
+]
 
 # Beaucoup de sites renvoient 403 au user-agent par défaut de feedparser :
 # on se fait passer pour un navigateur.
@@ -76,16 +88,21 @@ def main() -> None:
     producer = make_producer()
     print("Producteur connecté à Kafka.\n")
 
-    print(f"Actualités RSS ({RSS_URL}) :")
-    for article in fetch_news(RSS_URL)[:5]:        
-        send(producer, TOPIC_NEWS, article)
+    # --- Actualités : chaque flux est routé vers son topic ---
+    for url, topic in FEEDS:
+        articles = fetch_news(url)
+        print(f"\n{len(articles)} articles depuis {url}\n  -> {topic}")
+        for article in articles[:10]:          # on plafonne par flux
+            send(producer, topic, article)
 
-    print(f"\nCours de bourse ({SYMBOL}) :")
-    quote = fetch_quote(SYMBOL)
-    if quote:
-        send(producer, TOPIC_COURS, quote)
+    # --- Cours : tout l'univers de symboles ---
+    print(f"\nCours de bourse ({len(ALL_SYMBOLS)} symboles) :")
+    for symbol in ALL_SYMBOLS:
+        quote = fetch_quote(symbol)
+        if quote:
+            send(producer, TOPIC_COURS, quote)
 
-    producer.flush()     
+    producer.flush()
     producer.close()
     print("\nTerminé.")
 
