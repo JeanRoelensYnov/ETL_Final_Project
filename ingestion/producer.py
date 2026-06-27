@@ -1,17 +1,20 @@
 import json
+import os
+import sys
 from datetime import datetime, timezone
 
 import feedparser
 import yfinance as yf
 from kafka import KafkaProducer
 
+# Rend config.py (à la racine du projet) importable depuis ce sous-dossier.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import KAFKA_BOOTSTRAP
 from symbols import ALL_SYMBOLS
 
 # ---------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------
-KAFKA_BOOTSTRAP = "localhost:9092"      
-
 TOPIC_COURS = "topic_cours_bourse"
 TOPIC_NEWS = "topic_actualites_finance"
 TOPIC_EVENTS = "topic_evenements_mondiaux"

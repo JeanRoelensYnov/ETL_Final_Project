@@ -1,19 +1,16 @@
 import json
+import os
+import sys
 from datetime import datetime, timezone
 
 import pymysql
 from kafka import KafkaConsumer
 
-KAFKA_BOOTSTRAP = "localhost:9092"
-TOPIC_COURS = "topic_cours_bourse"
+# Rend config.py (à la racine du projet) importable depuis ce sous-dossier.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import KAFKA_BOOTSTRAP, MYSQL_CONF
 
-MYSQL_CONF = {
-    "host": "127.0.0.1",
-    "port": 3307,          # MySQL Docker remappé (3306 occupé par un MySQL natif)
-    "user": "etl",
-    "password": "etlpass",
-    "database": "bourse",
-}
+TOPIC_COURS = "topic_cours_bourse"
 
 # INSERT idempotent : si (symbol, ts) existe déjà (clé UNIQUE), on met à jour
 # au lieu de créer un doublon. -> on peut rejouer le pipeline sans le polluer.

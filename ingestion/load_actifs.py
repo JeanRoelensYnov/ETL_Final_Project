@@ -1,15 +1,13 @@
+import os
+import sys
+
 import pymysql
 import yfinance as yf
 
+# Rend config.py (à la racine du projet) importable depuis ce sous-dossier.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import MYSQL_CONF
 from symbols import ALL_SYMBOLS
-
-MYSQL_CONF = {
-    "host": "127.0.0.1",
-    "port": 3307,
-    "user": "etl",
-    "password": "etlpass",
-    "database": "bourse",
-}
 
 # UPSERT : insère, ou met à jour si le symbole existe déjà.
 UPSERT_SQL = """

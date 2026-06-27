@@ -1,10 +1,15 @@
 import json
+import os
+import sys
 from datetime import datetime, timezone
 
 from kafka import KafkaConsumer
 from pymongo import MongoClient
 
-KAFKA_BOOTSTRAP = "localhost:9092"
+# Rend config.py (à la racine du projet) importable depuis ce sous-dossier.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from config import KAFKA_BOOTSTRAP, MONGO_URI
+
 TOPIC_NEWS = "topic_actualites_finance"
 TOPIC_EVENTS = "topic_evenements_mondiaux"
 
@@ -13,8 +18,6 @@ CATEGORIE = {
     TOPIC_NEWS: "finance",
     TOPIC_EVENTS: "evenement",
 }
-
-MONGO_URI = "mongodb://root:rootpass@localhost:27017/?authSource=admin"
 
 
 def to_document(record) -> dict:
