@@ -10,6 +10,9 @@ from pymongo import MongoClient
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import KAFKA_BOOTSTRAP, MONGO_URI
 
+# Stdout en UTF-8 : NiFi redirige la sortie (pipe cp1252) -> évite UnicodeEncodeError.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 TOPIC_NEWS = "topic_actualites_finance"
 TOPIC_EVENTS = "topic_evenements_mondiaux"
 

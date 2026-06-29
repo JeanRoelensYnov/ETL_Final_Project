@@ -17,6 +17,8 @@ from pyspark.sql.types import (
 
 from config import KAFKA_BOOTSTRAP, MYSQL_CONF
 
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 TOPIC = "topic_cours_bourse"
 KAFKA_PKG = "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1"
 CHECKPOINT = "checkpoints/cours_mysql"      # gitignored
@@ -41,12 +43,10 @@ SCHEMA = StructType([
 
 
 def to_utc_naive(iso_ts: str) -> datetime:
-    """ISO avec fuseau -> datetime UTC sans fuseau (pour MySQL DATETIME)."""
     return datetime.fromisoformat(iso_ts).astimezone(timezone.utc).replace(tzinfo=None)
 
 
 def write_batch(batch_df, batch_id: int) -> None:
-    """Sink personnalisé : écrit un micro-batch en MySQL de façon idempotente."""
     rows = batch_df.collect()              # volume faible -> collect sur le driver est OK
     if not rows:
         return

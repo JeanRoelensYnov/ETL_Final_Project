@@ -7,14 +7,13 @@ import feedparser
 import yfinance as yf
 from kafka import KafkaProducer
 
-# Rend config.py (à la racine du projet) importable depuis ce sous-dossier.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import KAFKA_BOOTSTRAP
 from symbols import ALL_SYMBOLS
 
-# ---------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
 TOPIC_COURS = "topic_cours_bourse"
 TOPIC_NEWS = "topic_actualites_finance"
 TOPIC_EVENTS = "topic_evenements_mondiaux"
@@ -75,12 +74,12 @@ def fetch_quote(symbol: str) -> dict | None:
     last = df.iloc[-1]
     return {
         "symbol": symbol,
-        "timestamp": df.index[-1].isoformat(),   # pandas Timestamp -> str ISO
-        "open": float(last["Open"]),              # float() : numpy.float64 -> float JSON
+        "timestamp": df.index[-1].isoformat(),   
+        "open": float(last["Open"]),              
         "high": float(last["High"]),
         "low": float(last["Low"]),
         "close": float(last["Close"]),
-        "volume": int(last["Volume"]),            # int() : numpy.int64 -> int JSON
+        "volume": int(last["Volume"]),            
     }
 
 
@@ -91,14 +90,12 @@ def main() -> None:
     producer = make_producer()
     print("Producteur connecté à Kafka.\n")
 
-    # --- Actualités : chaque flux est routé vers son topic ---
     for url, topic in FEEDS:
         articles = fetch_news(url)
         print(f"\n{len(articles)} articles depuis {url}\n  -> {topic}")
         for article in articles[:10]:          # on plafonne par flux
             send(producer, topic, article)
 
-    # --- Cours : tout l'univers de symboles ---
     print(f"\nCours de bourse ({len(ALL_SYMBOLS)} symboles) :")
     for symbol in ALL_SYMBOLS:
         quote = fetch_quote(symbol)
