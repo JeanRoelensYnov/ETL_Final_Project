@@ -123,4 +123,7 @@ Un **dashboard Streamlit** (3 onglets) restitue toute la chaîne :
   intégrer au `docker-compose` permettrait un déploiement en une commande.
 - **Vrai temps réel** : passer le streaming Spark en micro-batch permanent (plutôt qu'à
   la demande), en complément de l'ingestion NiFi déjà continue.
+- **Point critique Kafka** : Kafka représente un point critique de l'infrastructure, si kafka vient à tomber c'est l'intégralité 
+  du pipeline qui échoue 
+- **Script -> vrai proccess NiFi** : Aujourd'hui l'architecture s'articule autour de trois script `[producer.py](./ingestion/producer.py)` `[consumer_mongo.py](./ingestion/consumer_mongo.py)` `[stream_to_mysql.py](./streaming/stream_to_mysql.py)` qui sont lancé par NiFi, c'est de la perte de puissance de calcul l'idéal serait que NiFi soit réellement l'acteur principal qui, via ses processus, éxécute les étapes nécessaires aux pipelines aujourd'hui fait par nos scripts. Mais cela pourrait aussi représenter un risque d'architecture rendant NiFi un point critique de l'architecture.
 
