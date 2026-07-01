@@ -50,6 +50,8 @@ dans le bon **topic Kafka** :
 `producer.py` (→ Kafka), `stream_to_mysql.py` (Kafka → MySQL) et `consumer_mongo.py`
 (Kafka → MongoDB). Les traitements lourds (mesures, enrichissement LLM) restent déclenchés à la demande dans le cadre du PoC.
 
+![Schema NiFi](./media/nifi_schema.png)
+
 ---
 
 ## 3. Étape 2 — Streaming, transformation et mesures
